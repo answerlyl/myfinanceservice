@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.answerlyl.myfinance.mapper.FinanceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.answerlyl.myfinance.entity.Finance">
+        <id column="FIN_ID" property="finId" />
+        <result column="INPUT_DATE" property="inputDate" />
+        <result column="MONTH" property="month" />
+        <result column="AMOUNT" property="amount" />
+        <result column="FIN_TYPE" property="finType" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="SORT" property="sort" />
+        <result column="SORT_DETAIL" property="sortDetail" />
+        <result column="BELONG" property="belong" />
+        <result column="REMARK" property="remark" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        FIN_ID, INPUT_DATE, MONTH, AMOUNT, FIN_TYPE, CREATE_DATE, SORT, SORT_DETAIL, BELONG, REMARK
+    </sql>
+
+
+    <select id="qryFinReportPage" resultType="map">
+        select res.month,
+                max(case when res.finType='12100' then res.amount else 0 end) as income,
+                max(case when res.finType='12101' then res.amount else 0 end) as pay
+        from
+            (select sum(amount) as amount,FIN_TYPE finType,month from finance
+            group by month,FIN_TYPE
+            order by month desc ) as res group by res.month order by res.month desc
+            ${ew.customSqlSegment}
+    </select>
+
+    <select id="qryFinListPage" resultType="com.answerlyl.myfinance.entity.Finance">
+        SELECT
+            fin.*,
+            at1.ATTR_NAME finTypeName ,
+            at2.ATTR_NAME sortName,
+            at3.ATTR_NAME sortDetailName,
+            at4.ATTR_NAME belongName
+            FROM
+            finance fin
+            LEFT JOIN attr_spec at1 ON fin.fin_type = at1.ATTR_ID
+            left join attr_spec at2 on fin.sort=at2.ATTR_ID
+            left join attr_spec at3 on fin.SORT_DETAIL=at3.ATTR_ID
+            left join attr_spec at4 on fin.BELONG=at4.ATTR_ID
+
+            ${ew.customSqlSegment}
+    </select>
+
+    <select id="qryDayCount" resultType="map" >
+        select steps,date from (
+            select sum(f.AMOUNT) steps,day date
+            from finance f where FIN_TYPE=#{finType}
+            and day &lt;= #{date}
+            GROUP BY day order by day desc limit #{limit}
+            ) res
+            order by res.date asc
+
+    </select>
+
+    <select id="qryDayInfo" resultType="map" >
+        select res.day,
+        max(case when res.finType='12100' then res.amount else 0 end) as income,
+        max(case when res.finType='12101' then res.amount else 0 end) as pay
+        from
+        (select sum(amount) as amount,FIN_TYPE finType,day from finance where day=#{day}
+        group by day,FIN_TYPE
+        order by day desc ) as res group by res.day order by res.day desc
+    </select>
+    <select id="qryMonthInfo" resultType="map" >
+	    select res.month,
+        max(case when res.finType='12100' then res.amount else 0 end) as income,
+        max(case when res.finType='12101' then res.amount else 0 end) as pay
+        from
+        (select sum(amount) as amount,FIN_TYPE finType,month from finance where month=#{month}
+        group by month,FIN_TYPE
+        order by month desc ) as res group by res.month order by res.month desc
+    </select>
+
+    <select id="qryBelongPercent" resultType="map" >
+        select f.belong,sum(f.amount) money,a.attr_name type,'const' const from finance f
+        LEFT JOIN attr_spec a
+        on f.BELONG = a.attr_id
+        where month=#{month} and fin_type=#{finType}
+        group by belong,month
+    </select>
+
+    <select id="qrySortPercent" resultType="map" >
+        <if test="finType == 12101">
+            select f.sort,sum(f.amount) money,a.attr_name type,'const' const from finance f
+            LEFT JOIN attr_spec a
+            on f.sort = a.attr_id
+            where month=#{month} and fin_type=#{finType}
+            group by sort,month
+        </if>
+        <if test="finType == 12100">
+            select f.sort_detail sort,sum(f.amount) money,a.attr_name type,'const' const from finance f
+            LEFT JOIN attr_spec a
+            on f.sort_detail = a.attr_id
+            where month=#{month} and fin_type=#{finType}
+            group by sort_detail,month
+        </if>
+
+    </select>
+
+    <select id="qrySortAmtList" resultType="map" >
+            SELECT
+            sum( f.amount ) amount,
+            (select sum( amount ) from finance where fin_type=#{finType}
+            <if test="day != null">
+                and day=#{day}
+            </if>
+            <if test="month != null">
+                and month=#{month}
+            </if>
+            ) sumAmt,
+            f.sort sort,
+            a1.ATTR_NAME sortName
+        FROM
+            finance f
+            left join attr_spec a1 on f.sort = a1.ATTR_ID
+        WHERE
+            fin_type = #{finType}
+        <if test="day != null">
+            and day=#{day}
+        </if>
+        <if test="month != null">
+            and month=#{month}
+        </if>
+        GROUP BY
+        sort
+        order by amount desc
+
+
+    </select>
+
+    <select id="qrySortDetailAmtList" resultType="map">
+        SELECT
+            sum( f.amount ) amount,
+            (select sum( amount ) from finance where fin_type=#{finType}
+            and sort=#{sort}
+        <if test="day != null">
+            and day=#{day}
+        </if>
+        <if test="month != null">
+            and month=#{month}
+        </if>
+
+            ) sumAmt,
+            f.SORT_DETAIL sortDetail,
+            a.ATTR_NAME sortDetailName
+        FROM
+            finance f
+            LEFT JOIN attr_spec a ON f.sort_detail = a.ATTR_ID
+            left join attr_spec a1 on f.sort = a1.ATTR_ID
+        WHERE
+            fin_type = #{finType}
+            and sort=#{sort}
+        <if test="day != null">
+            and day=#{day}
+        </if>
+        <if test="month != null">
+            and month=#{month}
+        </if>
+        GROUP BY
+            SORT_DETAIL
+        order by amount	desc;
+
+
+    </select>
+
+
+
+</mapper>

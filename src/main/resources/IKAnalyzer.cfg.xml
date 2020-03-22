@@ -1,0 +1,13 @@
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+
+<properties>
+
+    <comment>IK Analyzer 扩展配置</comment>
+
+    <entry key="ext_dict">ikConf/ext.dic;</entry>
+
+    <!--禁止搜索的-->
+
+    <entry key="ext_stopwords">ikConf/stopword.dic;</entry>
+
+</properties>

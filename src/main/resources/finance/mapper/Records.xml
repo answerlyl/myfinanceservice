@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.answerlyl.myfinance.mapper.RecordsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.answerlyl.myfinance.entity.Records">
+        <result column="id" property="id" />
+        <result column="createtime" property="createtime" />
+        <result column="summary" property="summary" />
+        <result column="message" property="message" />
+        <result column="content_type" property="contentType" />
+        <result column="content_position" property="contentPosition" />
+        <result column="month" property="month" />
+        <result column="week" property="week" />
+        <result column="day_of_week" property="dayOfWeek" />
+        <result column="day" property="day" />
+        <result column="date" property="date" />
+        <result column="hour" property="hour" />
+        <result column="hour_format" property="hourFormat" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, createtime, summary, message, content_type, content_position, month, week, day_of_week, day, date, hour, hour_format
+    </sql>
+
+</mapper>

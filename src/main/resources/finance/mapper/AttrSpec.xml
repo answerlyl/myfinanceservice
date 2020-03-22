@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.answerlyl.myfinance.mapper.AttrSpecMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.answerlyl.myfinance.entity.AttrSpec">
+        <id column="ATTR_ID" property="attrId" />
+        <result column="PAR_ATTR_ID" property="parAttrId" />
+        <result column="ATTR_NBR" property="attrNbr" />
+        <result column="ATTR_NAME" property="attrName" />
+        <result column="ATTR_DESC" property="attrDesc" />
+        <result column="DEFAULT_VALUE" property="defaultValue" />
+        <result column="STATUS_CD" property="statusCd" />
+        <result column="CREATE_DATE" property="createDate" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ATTR_ID, PAR_ATTR_ID, ATTR_NBR, ATTR_NAME, ATTR_DESC, DEFAULT_VALUE, STATUS_CD, CREATE_DATE
+    </sql>
+
+
+    <select id="qryAttrSpecByParId" resultMap="BaseResultMap" parameterType="Integer" >
+
+        select
+        ATTR_ID as id,
+        ATTR_NAME as text,
+        <include refid="Base_Column_List" />
+        from attr_spec
+        where PAR_ATTR_ID = #{parId,jdbcType=INTEGER}
+        order by ORDER_FLAG desc
+
+    </select>
+
+</mapper>
